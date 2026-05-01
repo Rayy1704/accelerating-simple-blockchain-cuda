@@ -2,6 +2,14 @@
 #include <string.h>
 #include <stdint.h>
 #include "mining_gpu.h"
+// helper macros for sha-256
+#define ROTR(x, n)  (((x) >> (n)) | ((x) << (32 - (n))))
+#define CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
+#define MAJ(x, y, z)(((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+#define EP0(x)      (ROTR(x,  2) ^ ROTR(x, 13) ^ ROTR(x, 22))
+#define EP1(x)      (ROTR(x,  6) ^ ROTR(x, 11) ^ ROTR(x, 25))
+#define SIG0(x)     (ROTR(x,  7) ^ ROTR(x, 18) ^ ((x) >>  3))
+#define SIG1(x)     (ROTR(x, 17) ^ ROTR(x, 19) ^ ((x) >> 10))
 
 // pair<string,string> findHash(int index, string prevHash, vector<string> &merkle) {
 //     string header = to_string(index) + prevHash + getMerkleRoot(merkle);
@@ -48,3 +56,29 @@ __constant__ uint32_t K[64] = {
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
+
+__device__ void sha256_device(const unsigned char* input, int len, unsigned char* output){
+    //initia; hash values
+    uint32_t h0 = 0x6a09e667, h1 = 0xbb67ae85,
+             h2 = 0x3c6ef372, h3 = 0xa54ff53a,
+             h4 = 0x510e527f, h5 = 0x9b05688c,
+             h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+    unsigned char msg[128];   // enough for header+nonce + padding
+    memset(msg, 0, 128); //fill buffer with zeros
+    memcpy(msg, input, len); // copy header+nonce into buffer
+
+    msg[len] = 0x80; //append 1 to buffer after message
+
+    uint64_t bitlen = (uint64_t)len * 8; // length of message in bits
+    int padded_len = ((len + 9 + 63) / 64) * 64;  // total length after padding 
+    // append original message length in bits at the end of the buffer
+    msg[padded_len - 1] = (unsigned char)(bitlen);
+    msg[padded_len - 2] = (unsigned char)(bitlen >> 8);
+    msg[padded_len - 3] = (unsigned char)(bitlen >> 16);
+    msg[padded_len - 4] = (unsigned char)(bitlen >> 24);
+    msg[padded_len - 5] = (unsigned char)(bitlen >> 32);
+    msg[padded_len - 6] = (unsigned char)(bitlen >> 40);
+    msg[padded_len - 7] = (unsigned char)(bitlen >> 48);
+    msg[padded_len - 8] = (unsigned char)(bitlen >> 56);
+
+    //processing each 64 byte chunk together 
