@@ -176,3 +176,12 @@ __device__ bool hasLeadingZeros(unsigned char* hash) {
     }
     return true;
 }
+
+__global__ 
+
+void mineKernel(const unsigned char* header,int headerLen,unsigned int batchStart,int difficulty,unsigned int* resultNonce,int* found){
+    if (*found) return // already found hash, skip work
+    unsigned int nonce = batchStart + blockIdx.x * blockDim.x + threadIdx.x; // calculate nonce
+    unsigned char input[128]; // buffer for header + nonce and padding
+    memcpy(input, header, headerLen); // copy header into buffer]
+}
