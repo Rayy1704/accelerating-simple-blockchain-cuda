@@ -63,6 +63,6 @@ To complete the project and exceed the standard curriculum, the following phases
 
 1. **Batch ECDSA Verifier:** Developing an embarrassingly parallel kernel designed to verify thousands of digital signatures concurrently.
 2. **CUDA Streams (Asynchronous Execution):** Overlapping the host framework's state management with the GPU-side cryptographic execution, ensuring neither processor sits idle while data batches move across the PCIe bus.
-(If we find the use)3. **Advanced Integration:** Finalizing Foreign Function Interfaces (FFI / Bindings) to bridge the low-level CUDA drivers with high-level host frameworks.
+3. (If we find the use) **Advanced Integration:** Finalizing Foreign Function Interfaces (FFI / Bindings) to bridge the low-level CUDA drivers with high-level host frameworks.
 4. **Shared Memory Optimization:** Transitioning current global memory accesses in the Merkle and Mining kernels to utilize advanced shared-memory thread synchronization for increased throughput.
 5. **CUDA Dynamic Parallelism (CDP):** Engineering the GPU to autonomously spawn child execution grids during the recursive Merkle Tree generation, effectively eliminating the latency and overhead of repeated CPU-to-GPU kernel launches from the host framework.
