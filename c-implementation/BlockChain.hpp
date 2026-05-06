@@ -100,6 +100,9 @@ bool BlockChain::isChainValid() {
         Block* b = blockchain[i].get();
         vector<string> data = b->getData();
         string header = to_string(b->getIndex()) + b->getPreviousHash() + getMerkleRoot(data) + b->getNonce();
+        if (sha256(header) != b->getHash()) return false;
+        if (b->getHash().substr(0,6) != "000000") return false;
+        if (b->getPreviousHash() != blockchain[i-1]->getHash()) return false;
     }
     return true;
 }
